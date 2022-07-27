@@ -3,6 +3,7 @@
  * Any changes will be lost if this file is regenerated.
  */
 
+/* verilator lint_off PINMISSING */
 module Decoder2 (
     output out_0,
     output out_1,
