@@ -1,2 +1,2 @@
 # CBox16-Processor
-Implementation of a custom ARMv7 / MIPS IV hybrid ISA microarchitecture called CBox16
+Implementation of QuAC v1.0 ISA microarchitecture called CBox16
