@@ -10,8 +10,12 @@ module reg_file_tb;
     reg clk;
     reg [15:0] FL_IN;
     reg FL_EN;
+    reg [15:0] PC_IN;
+    reg HE;
     wire [15:0] OUT1;
     wire [15:0] OUT2;
+    wire [15:0] PC_S;
+    wire PC_WE;
 
   reg_file reg_file0 (
     .RS1(RS1),
@@ -22,8 +26,12 @@ module reg_file_tb;
     .clk(clk),
     .FL_IN(FL_IN),
     .FL_EN(FL_EN),
+    .PC_IN(PC_IN),
+    .HE(HE),
     .OUT1(OUT1),
-    .OUT2(OUT2)
+    .OUT2(OUT2),
+    .PC_S(PC_S),
+    .PC_WE(PC_WE)
   );
 
     reg [58:0] patterns[0:47];

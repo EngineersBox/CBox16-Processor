@@ -17,9 +17,12 @@ architecture behav of reg_file_tb is
       clk: in std_logic;
       FL_IN: in std_logic_vector(15 downto 0); -- The value to be saved into the register specified by WS if WE is high,
       FL_EN: in std_logic; -- Whether the register selected by WS should save the value from IN on the next cycle.
+      PC_IN: in std_logic_vector(15 downto 0);
+      HE: in std_logic;
       OUT1: out std_logic_vector(15 downto 0); -- The value in the register specified by RS1.
-      OUT2: out std_logic_vector(15 downto 0) -- The value in the register specified by RS2.
-      );
+      OUT2: out std_logic_vector(15 downto 0); -- The value in the register specified by RS2.
+      PC_S: out std_logic_vector(15 downto 0);
+      PC_WE: out std_logic);
   end component;
 
   signal RS1 : std_logic_vector(2 downto 0);
@@ -30,8 +33,12 @@ architecture behav of reg_file_tb is
   signal clk : std_logic;
   signal FL_IN : std_logic_vector(15 downto 0);
   signal FL_EN : std_logic;
+  signal PC_IN : std_logic_vector(15 downto 0);
+  signal HE : std_logic;
   signal OUT1 : std_logic_vector(15 downto 0);
   signal OUT2 : std_logic_vector(15 downto 0);
+  signal PC_S : std_logic_vector(15 downto 0);
+  signal PC_WE : std_logic;
   function to_string ( a: std_logic_vector) return string is
       variable b : string (1 to a'length) := (others => NUL);
       variable stri : integer := 1; 
@@ -52,8 +59,12 @@ begin
     clk => clk,
     FL_IN => FL_IN,
     FL_EN => FL_EN,
+    PC_IN => PC_IN,
+    HE => HE,
     OUT1 => OUT1,
-    OUT2 => OUT2 );
+    OUT2 => OUT2,
+    PC_S => PC_S,
+    PC_WE => PC_WE );
   process
     type pattern_type is record
       clk : std_logic;
@@ -125,12 +136,18 @@ begin
       clk <= patterns(i).clk;
       FL_IN <= patterns(i).FL_IN;
       FL_EN <= patterns(i).FL_EN;
+      PC_IN <= patterns(i).PC_IN;
+      HE <= patterns(i).HE;
       wait for 10 ns;
       assert std_match(OUT1, patterns(i).OUT1) OR (OUT1 = "ZZZZZZZZZZZZZZZZ" AND patterns(i).OUT1 = "ZZZZZZZZZZZZZZZZ")
         report "wrong value for OUT1, i=" & integer'image(i)
          & ", expected " & to_string(patterns(i).OUT1) & ", found " & to_string(OUT1) severity error;assert std_match(OUT2, patterns(i).OUT2) OR (OUT2 = "ZZZZZZZZZZZZZZZZ" AND patterns(i).OUT2 = "ZZZZZZZZZZZZZZZZ")
         report "wrong value for OUT2, i=" & integer'image(i)
-         & ", expected " & to_string(patterns(i).OUT2) & ", found " & to_string(OUT2) severity error;end loop;
+         & ", expected " & to_string(patterns(i).OUT2) & ", found " & to_string(OUT2) severity error;assert std_match(PC_S, patterns(i).PC_S) OR (PC_S = "ZZZZZZZZZZZZZZZZ" AND patterns(i).PC_S = "ZZZZZZZZZZZZZZZZ")
+        report "wrong value for PC_S, i=" & integer'image(i)
+         & ", expected " & to_string(patterns(i).PC_S) & ", found " & to_string(PC_S) severity error;assert std_match(PC_WE, patterns(i).PC_WE) OR (PC_WE = 'Z' AND patterns(i).PC_WE = 'Z')
+        report "wrong value for PC_WE, i=" & integer'image(i)
+         & ", expected " & std_logic'image(patterns(i).PC_WE) & ", found " & std_logic'image(PC_WE) severity error;end loop;
     wait;
   end process;
 end behav;
