@@ -119,41 +119,6 @@ end Behavioral;
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 
-entity MUX_GATE_BUS_3 is
-  generic ( Bits : integer ); 
-  port (
-    p_out: out std_logic_vector ((Bits-1) downto 0);
-    sel: in std_logic_vector (2 downto 0);
-    
-    in_0: in std_logic_vector ((Bits-1) downto 0);
-    in_1: in std_logic_vector ((Bits-1) downto 0);
-    in_2: in std_logic_vector ((Bits-1) downto 0);
-    in_3: in std_logic_vector ((Bits-1) downto 0);
-    in_4: in std_logic_vector ((Bits-1) downto 0);
-    in_5: in std_logic_vector ((Bits-1) downto 0);
-    in_6: in std_logic_vector ((Bits-1) downto 0);
-    in_7: in std_logic_vector ((Bits-1) downto 0) );
-end MUX_GATE_BUS_3;
-
-architecture Behavioral of MUX_GATE_BUS_3 is
-begin
-  with sel select
-    p_out <=
-      in_0 when "000",
-      in_1 when "001",
-      in_2 when "010",
-      in_3 when "011",
-      in_4 when "100",
-      in_5 when "101",
-      in_6 when "110",
-      in_7 when "111",
-      (others => '0') when others;
-end Behavioral;
-
-
-LIBRARY ieee;
-USE ieee.std_logic_1164.all;
-
 entity MUX_GATE_BUS_1 is
   generic ( Bits : integer ); 
   port (
@@ -203,6 +168,41 @@ end Behavioral;
 
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
+
+entity MUX_GATE_BUS_3 is
+  generic ( Bits : integer ); 
+  port (
+    p_out: out std_logic_vector ((Bits-1) downto 0);
+    sel: in std_logic_vector (2 downto 0);
+    
+    in_0: in std_logic_vector ((Bits-1) downto 0);
+    in_1: in std_logic_vector ((Bits-1) downto 0);
+    in_2: in std_logic_vector ((Bits-1) downto 0);
+    in_3: in std_logic_vector ((Bits-1) downto 0);
+    in_4: in std_logic_vector ((Bits-1) downto 0);
+    in_5: in std_logic_vector ((Bits-1) downto 0);
+    in_6: in std_logic_vector ((Bits-1) downto 0);
+    in_7: in std_logic_vector ((Bits-1) downto 0) );
+end MUX_GATE_BUS_3;
+
+architecture Behavioral of MUX_GATE_BUS_3 is
+begin
+  with sel select
+    p_out <=
+      in_0 when "000",
+      in_1 when "001",
+      in_2 when "010",
+      in_3 when "011",
+      in_4 when "100",
+      in_5 when "101",
+      in_6 when "110",
+      in_7 when "111",
+      (others => '0') when others;
+end Behavioral;
+
+
+LIBRARY ieee;
+USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
 entity reg_file is
@@ -220,7 +220,8 @@ entity reg_file is
     OUT1: out std_logic_vector(15 downto 0); -- The value in the register specified by RS1.
     OUT2: out std_logic_vector(15 downto 0); -- The value in the register specified by RS2.
     PC_S: out std_logic_vector(15 downto 0);
-    PC_WE: out std_logic);
+    PC_WE: out std_logic;
+    FL_OUT: out std_logic_vector(15 downto 0));
 end reg_file;
 
 architecture Behavioral of reg_file is
@@ -238,12 +239,12 @@ architecture Behavioral of reg_file is
   signal s11: std_logic_vector(15 downto 0);
   signal s12: std_logic;
   signal s13: std_logic_vector(15 downto 0);
-  signal s14: std_logic_vector(15 downto 0);
-  signal PC_S_temp: std_logic_vector(15 downto 0);
-  signal s15: std_logic;
+  signal FL_OUT_temp: std_logic_vector(15 downto 0);
+  signal s14: std_logic;
   signal PC_WE_temp: std_logic;
-  signal s16: std_logic_vector(15 downto 0);
-  signal s17: std_logic;
+  signal s15: std_logic_vector(15 downto 0);
+  signal s16: std_logic;
+  signal s17: std_logic_vector(15 downto 0);
   signal s18: std_logic_vector(15 downto 0);
 begin
   gate0: entity work.DEMUX_GATE_3
@@ -255,7 +256,7 @@ begin
       out_2 => s6,
       out_3 => s9,
       out_4 => s12,
-      out_5 => s15,
+      out_5 => s14,
       out_7 => PC_WE_temp);
   gate1: entity work.DIG_Register_BUS -- RZ
     generic map (
@@ -265,8 +266,30 @@ begin
       C => clk,
       en => s0,
       Q => s1);
-  s17 <= (s15 OR FL_EN);
-  gate2: entity work.DIG_Register_BUS -- R1
+  s16 <= (s14 OR FL_EN);
+  gate2: entity work.MUX_GATE_BUS_1
+    generic map (
+      Bits => 16)
+    port map (
+      sel => PC_WE_temp,
+      in_0 => PC_IN,
+      in_1 => p_IN,
+      p_out => s18);
+  gate3: entity work.high_mask_in
+    port map (
+      D_HIGH => s18,
+      D => PC_IN,
+      EN => HE,
+      Q => s17);
+  gate4: entity work.MUX_GATE_BUS_1
+    generic map (
+      Bits => 16)
+    port map (
+      sel => PC_WE_temp,
+      in_0 => "0000000000000000",
+      in_1 => s17,
+      p_out => PC_S);
+  gate5: entity work.DIG_Register_BUS -- R1
     generic map (
       Bits => 16)
     port map (
@@ -274,7 +297,7 @@ begin
       C => clk,
       en => s3,
       Q => s4);
-  gate3: entity work.DIG_Register_BUS -- R2
+  gate6: entity work.DIG_Register_BUS -- R2
     generic map (
       Bits => 16)
     port map (
@@ -282,7 +305,7 @@ begin
       C => clk,
       en => s6,
       Q => s7);
-  gate4: entity work.DIG_Register_BUS -- R3
+  gate7: entity work.DIG_Register_BUS -- R3
     generic map (
       Bits => 16)
     port map (
@@ -290,7 +313,7 @@ begin
       C => clk,
       en => s9,
       Q => s10);
-  gate5: entity work.DIG_Register_BUS -- R4
+  gate8: entity work.DIG_Register_BUS -- R4
     generic map (
       Bits => 16)
     port map (
@@ -298,7 +321,7 @@ begin
       C => clk,
       en => s12,
       Q => s13);
-  gate6: entity work.MUX_GATE_BUS_3
+  gate9: entity work.MUX_GATE_BUS_3
     generic map (
       Bits => 16)
     port map (
@@ -308,11 +331,11 @@ begin
       in_2 => s7,
       in_3 => s10,
       in_4 => s13,
-      in_5 => s14,
+      in_5 => FL_OUT_temp,
       in_6 => "0000000000000000",
-      in_7 => PC_S_temp,
+      in_7 => PC_IN,
       p_out => OUT1);
-  gate7: entity work.MUX_GATE_BUS_3
+  gate10: entity work.MUX_GATE_BUS_3
     generic map (
       Bits => 16)
     port map (
@@ -322,64 +345,50 @@ begin
       in_2 => s7,
       in_3 => s10,
       in_4 => s13,
-      in_5 => s14,
+      in_5 => FL_OUT_temp,
       in_6 => "0000000000000000",
-      in_7 => PC_S_temp,
+      in_7 => PC_IN,
       p_out => OUT2);
-  gate8: entity work.DIG_Register_BUS -- FL
+  gate11: entity work.DIG_Register_BUS -- FL
     generic map (
       Bits => 16)
     port map (
-      D => s16,
+      D => s15,
       C => clk,
-      en => s17,
-      Q => s14);
-  gate9: entity work.MUX_GATE_BUS_1
-    generic map (
-      Bits => 16)
-    port map (
-      sel => PC_WE_temp,
-      in_0 => "0000000000000000",
-      in_1 => s18,
-      p_out => PC_S_temp);
-  gate10: entity work.high_mask_in
+      en => s16,
+      Q => FL_OUT_temp);
+  gate12: entity work.high_mask_in
     port map (
       D_HIGH => p_IN,
       D => s4,
       EN => HE,
       Q => s2);
-  gate11: entity work.high_mask_in
+  gate13: entity work.high_mask_in
     port map (
       D_HIGH => p_IN,
       D => s7,
       EN => HE,
       Q => s5);
-  gate12: entity work.high_mask_in
+  gate14: entity work.high_mask_in
     port map (
       D_HIGH => p_IN,
       D => s10,
       EN => HE,
       Q => s8);
-  gate13: entity work.high_mask_in
+  gate15: entity work.high_mask_in
     port map (
       D_HIGH => p_IN,
       D => s13,
       EN => HE,
       Q => s11);
-  gate14: entity work.high_mask_in
+  gate16: entity work.high_mask_in
     port map (
       D_HIGH => FL_IN,
-      D => s14,
+      D => FL_OUT_temp,
       EN => HE,
-      Q => s16);
-  gate15: entity work.high_mask_in
-    port map (
-      D_HIGH => PC_IN,
-      D => PC_S_temp,
-      EN => HE,
-      Q => s18);
-  PC_S <= PC_S_temp;
+      Q => s15);
   PC_WE <= PC_WE_temp;
+  FL_OUT <= FL_OUT_temp;
 end Behavioral;
 
 LIBRARY ieee;

@@ -95,38 +95,6 @@ module Demux3
 endmodule
 
 
-module Mux_8x1_NBits #(
-    parameter Bits = 2
-)
-(
-    input [2:0] sel,
-    input [(Bits - 1):0] in_0,
-    input [(Bits - 1):0] in_1,
-    input [(Bits - 1):0] in_2,
-    input [(Bits - 1):0] in_3,
-    input [(Bits - 1):0] in_4,
-    input [(Bits - 1):0] in_5,
-    input [(Bits - 1):0] in_6,
-    input [(Bits - 1):0] in_7,
-    output reg [(Bits - 1):0] out
-);
-    always @ (*) begin
-        case (sel)
-            3'h0: out = in_0;
-            3'h1: out = in_1;
-            3'h2: out = in_2;
-            3'h3: out = in_3;
-            3'h4: out = in_4;
-            3'h5: out = in_5;
-            3'h6: out = in_6;
-            3'h7: out = in_7;
-            default:
-                out = 'h0;
-        endcase
-    end
-endmodule
-
-
 module Mux_2x1_NBits #(
     parameter Bits = 2
 )
@@ -167,6 +135,38 @@ module high_mask_in (
   );
 endmodule
 
+module Mux_8x1_NBits #(
+    parameter Bits = 2
+)
+(
+    input [2:0] sel,
+    input [(Bits - 1):0] in_0,
+    input [(Bits - 1):0] in_1,
+    input [(Bits - 1):0] in_2,
+    input [(Bits - 1):0] in_3,
+    input [(Bits - 1):0] in_4,
+    input [(Bits - 1):0] in_5,
+    input [(Bits - 1):0] in_6,
+    input [(Bits - 1):0] in_7,
+    output reg [(Bits - 1):0] out
+);
+    always @ (*) begin
+        case (sel)
+            3'h0: out = in_0;
+            3'h1: out = in_1;
+            3'h2: out = in_2;
+            3'h3: out = in_3;
+            3'h4: out = in_4;
+            3'h5: out = in_5;
+            3'h6: out = in_6;
+            3'h7: out = in_7;
+            default:
+                out = 'h0;
+        endcase
+    end
+endmodule
+
+
 module reg_file (
   input [2:0] RS1, // The index of the register which should output its value to OUT1.
   input [2:0] RS2, // The index of the register which should output its value to OUT2.
@@ -181,7 +181,8 @@ module reg_file (
   output [15:0] OUT1, // The value in the register specified by RS1.
   output [15:0] OUT2, // The value in the register specified by RS2.
   output [15:0] PC_S,
-  output PC_WE
+  output PC_WE,
+  output [15:0] FL_OUT
 );
   wire s0;
   wire [15:0] s1;
@@ -197,12 +198,12 @@ module reg_file (
   wire [15:0] s11;
   wire s12;
   wire [15:0] s13;
-  wire [15:0] s14;
-  wire [15:0] PC_S_temp;
-  wire s15;
+  wire [15:0] FL_OUT_temp;
+  wire s14;
   wire PC_WE_temp;
-  wire [15:0] s16;
-  wire s17;
+  wire [15:0] s15;
+  wire s16;
+  wire [15:0] s17;
   wire [15:0] s18;
   Demux3 Demux3_i0 (
     .sel( WS ),
@@ -212,7 +213,7 @@ module reg_file (
     .out_2( s6 ),
     .out_3( s9 ),
     .out_4( s12 ),
-    .out_5( s15 ),
+    .out_5( s14 ),
     .out_7( PC_WE_temp )
   );
   // RZ
@@ -225,12 +226,36 @@ module reg_file (
     .en( s0 ),
     .Q( s1 )
   );
-  assign s17 = (s15 | FL_EN);
+  assign s16 = (s14 | FL_EN);
+  Mux_2x1_NBits #(
+    .Bits(16)
+  )
+  Mux_2x1_NBits_i2 (
+    .sel( PC_WE_temp ),
+    .in_0( PC_IN ),
+    .in_1( IN ),
+    .out( s18 )
+  );
+  high_mask_in high_mask_in_i3 (
+    .D_HIGH( s18 ),
+    .D( PC_IN ),
+    .EN( HE ),
+    .Q( s17 )
+  );
+  Mux_2x1_NBits #(
+    .Bits(16)
+  )
+  Mux_2x1_NBits_i4 (
+    .sel( PC_WE_temp ),
+    .in_0( 16'b0 ),
+    .in_1( s17 ),
+    .out( PC_S )
+  );
   // R1
   DIG_Register_BUS #(
     .Bits(16)
   )
-  DIG_Register_BUS_i2 (
+  DIG_Register_BUS_i5 (
     .D( s2 ),
     .C( clk ),
     .en( s3 ),
@@ -240,7 +265,7 @@ module reg_file (
   DIG_Register_BUS #(
     .Bits(16)
   )
-  DIG_Register_BUS_i3 (
+  DIG_Register_BUS_i6 (
     .D( s5 ),
     .C( clk ),
     .en( s6 ),
@@ -250,7 +275,7 @@ module reg_file (
   DIG_Register_BUS #(
     .Bits(16)
   )
-  DIG_Register_BUS_i4 (
+  DIG_Register_BUS_i7 (
     .D( s8 ),
     .C( clk ),
     .en( s9 ),
@@ -260,7 +285,7 @@ module reg_file (
   DIG_Register_BUS #(
     .Bits(16)
   )
-  DIG_Register_BUS_i5 (
+  DIG_Register_BUS_i8 (
     .D( s11 ),
     .C( clk ),
     .en( s12 ),
@@ -269,90 +294,75 @@ module reg_file (
   Mux_8x1_NBits #(
     .Bits(16)
   )
-  Mux_8x1_NBits_i6 (
+  Mux_8x1_NBits_i9 (
     .sel( RS1 ),
     .in_0( s1 ),
     .in_1( s4 ),
     .in_2( s7 ),
     .in_3( s10 ),
     .in_4( s13 ),
-    .in_5( s14 ),
+    .in_5( FL_OUT_temp ),
     .in_6( 16'b0 ),
-    .in_7( PC_S_temp ),
+    .in_7( PC_IN ),
     .out( OUT1 )
   );
   Mux_8x1_NBits #(
     .Bits(16)
   )
-  Mux_8x1_NBits_i7 (
+  Mux_8x1_NBits_i10 (
     .sel( RS2 ),
     .in_0( s1 ),
     .in_1( s4 ),
     .in_2( s7 ),
     .in_3( s10 ),
     .in_4( s13 ),
-    .in_5( s14 ),
+    .in_5( FL_OUT_temp ),
     .in_6( 16'b0 ),
-    .in_7( PC_S_temp ),
+    .in_7( PC_IN ),
     .out( OUT2 )
   );
   // FL
   DIG_Register_BUS #(
     .Bits(16)
   )
-  DIG_Register_BUS_i8 (
-    .D( s16 ),
+  DIG_Register_BUS_i11 (
+    .D( s15 ),
     .C( clk ),
-    .en( s17 ),
-    .Q( s14 )
+    .en( s16 ),
+    .Q( FL_OUT_temp )
   );
-  Mux_2x1_NBits #(
-    .Bits(16)
-  )
-  Mux_2x1_NBits_i9 (
-    .sel( PC_WE_temp ),
-    .in_0( 16'b0 ),
-    .in_1( s18 ),
-    .out( PC_S_temp )
-  );
-  high_mask_in high_mask_in_i10 (
+  high_mask_in high_mask_in_i12 (
     .D_HIGH( IN ),
     .D( s4 ),
     .EN( HE ),
     .Q( s2 )
   );
-  high_mask_in high_mask_in_i11 (
+  high_mask_in high_mask_in_i13 (
     .D_HIGH( IN ),
     .D( s7 ),
     .EN( HE ),
     .Q( s5 )
   );
-  high_mask_in high_mask_in_i12 (
+  high_mask_in high_mask_in_i14 (
     .D_HIGH( IN ),
     .D( s10 ),
     .EN( HE ),
     .Q( s8 )
   );
-  high_mask_in high_mask_in_i13 (
+  high_mask_in high_mask_in_i15 (
     .D_HIGH( IN ),
     .D( s13 ),
     .EN( HE ),
     .Q( s11 )
   );
-  high_mask_in high_mask_in_i14 (
+  high_mask_in high_mask_in_i16 (
     .D_HIGH( FL_IN ),
-    .D( s14 ),
+    .D( FL_OUT_temp ),
     .EN( HE ),
-    .Q( s16 )
+    .Q( s15 )
   );
-  high_mask_in high_mask_in_i15 (
-    .D_HIGH( PC_IN ),
-    .D( PC_S_temp ),
-    .EN( HE ),
-    .Q( s18 )
-  );
-  assign PC_S = PC_S_temp;
   assign PC_WE = PC_WE_temp;
+  assign FL_OUT = FL_OUT_temp;
 endmodule
 
 module Mux_4x1_NBits #(
