@@ -72,6 +72,10 @@
       <elementName>LookUpTable</elementName>
       <elementAttributes>
         <entry>
+          <string>Label</string>
+          <string>OpcodeCL</string>
+        </entry>
+        <entry>
           <string>Bits</string>
           <int>12</int>
         </entry>

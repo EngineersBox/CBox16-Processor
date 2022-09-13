@@ -610,6 +610,10 @@ end loop
       <elementName>LookUpTable</elementName>
       <elementAttributes>
         <entry>
+          <string>Label</string>
+          <string>OpcodeCL</string>
+        </entry>
+        <entry>
           <string>Bits</string>
           <int>13</int>
         </entry>
@@ -741,29 +745,6 @@ end loop
         </entry>
       </elementAttributes>
       <pos x="-200" y="440"/>
-    </visualElement>
-    <visualElement>
-      <elementName>LED</elementName>
-      <elementAttributes>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="3"/>
-        </entry>
-        <entry>
-          <string>Color</string>
-          <awt-color>
-            <red>51</red>
-            <green>255</green>
-            <blue>51</blue>
-            <alpha>255</alpha>
-          </awt-color>
-        </entry>
-        <entry>
-          <string>Label</string>
-          <string>EXEC</string>
-        </entry>
-      </elementAttributes>
-      <pos x="-40" y="620"/>
     </visualElement>
     <visualElement>
       <elementName>Multiplexer</elementName>
@@ -1143,7 +1124,7 @@ end loop
     </wire>
     <wire>
       <p1 x="-60" y="520"/>
-      <p2 x="-40" y="520"/>
+      <p2 x="0" y="520"/>
     </wire>
     <wire>
       <p1 x="0" y="520"/>
@@ -1176,10 +1157,6 @@ end loop
     <wire>
       <p1 x="320" y="520"/>
       <p2 x="400" y="520"/>
-    </wire>
-    <wire>
-      <p1 x="-40" y="520"/>
-      <p2 x="0" y="520"/>
     </wire>
     <wire>
       <p1 x="560" y="520"/>
@@ -1436,10 +1413,6 @@ end loop
     <wire>
       <p1 x="-40" y="220"/>
       <p2 x="-40" y="500"/>
-    </wire>
-    <wire>
-      <p1 x="-40" y="520"/>
-      <p2 x="-40" y="620"/>
     </wire>
     <wire>
       <p1 x="40" y="600"/>

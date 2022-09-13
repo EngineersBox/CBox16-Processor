@@ -15,6 +15,10 @@
           <string>ForwardE</string>
         </entry>
         <entry>
+          <string>Bits</string>
+          <int>2</int>
+        </entry>
+        <entry>
           <string>Inputs</string>
           <int>1</int>
         </entry>
