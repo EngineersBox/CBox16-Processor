@@ -117,7 +117,7 @@
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>MemToReg</string>
+          <string>MemToRegM</string>
         </entry>
       </elementAttributes>
       <pos x="580" y="500"/>

@@ -17,7 +17,7 @@
       <elementAttributes>
         <entry>
           <string>Label</string>
-          <string>INST</string>
+          <string>INSN</string>
         </entry>
         <entry>
           <string>Bits</string>
